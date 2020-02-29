@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html>
-    <body>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <script src="angular.min.js"></script>
+    <script src="app.js"></script>
+    <body ng-app="dataBind">
         <input type="file" id="files" name="files[]" multiple />
-        <div id ="showJson"></div>
+        <div id ="showJson" ng-controller="html2Json"></div>
         <script>
             function handleFileSelect(evt) {
               var files = evt.target.files; // FileList object
@@ -13,37 +18,29 @@
                 var myJson = JSON.parse(e.target.result);
                 var allKeys = "";
 
-                //有些浏览器不支持Array.isArray()，需要以下if语句生成它
-                /*if (!Array.isArray) {
-                    Array.isArray = function(arg) {
-                    return Object.prototype.toString.call(arg) === '[object Array]';
-                    };
-                }
-                */
-
                 function getAllKeys(jObj) {
                     var s = "";
                     for (let prop in jObj) {
                         if (typeof jObj[prop] === 'object') {
                             if (Array.isArray(jObj[prop])) {
-                                s += `${prop}<br>`;
+                                s += `${prop}<input type="text" value=${jObj[prop]}><br>`;
                             } else {
-                                s += getAllKeys(jObj[prop]);
+                                s += '<div>' + prop + '<br><div style="margin-left:5%">' 
+                                    + getAllKeys(jObj[prop]) + '</div><hr></div>';
                             };                           
                         } else {
-                            s += `${prop}<br>`;
+                            if (prop === 'comment') {
+                                s += jObj[prop] + '<br>';
+                            } else {
+                                s += `${prop}<input type="text" value=${jObj[prop]}><br>`;
+                            };                           
                         }       
                     }
                     return s;
                 }
                 allKeys = getAllKeys(myJson);
-                //for (let prop in myJson) {
-                //    if (typeof myJson[prop] === 'object') {
-                //        allKeys+=`${prop}<br>` 
-                //    }
-                //};
                 document.getElementById("showJson").innerHTML = allKeys;
-                //console.log(e.target.result);
+                console.log(myJson.nReach.comment);
               };
               reader.readAsText(files[0]);
             }
