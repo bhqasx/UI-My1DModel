@@ -12,11 +12,36 @@
                 // e.target.result should contain the text
                 var myJson = JSON.parse(e.target.result);
                 var allKeys = "";
-                for (let prop in myJson) {
-                    if (typeof myJson[prop] === 'object') {
-                        allKeys+=`${prop}<br>` 
+
+                //有些浏览器不支持Array.isArray()，需要以下if语句生成它
+                /*if (!Array.isArray) {
+                    Array.isArray = function(arg) {
+                    return Object.prototype.toString.call(arg) === '[object Array]';
+                    };
+                }
+                */
+
+                function getAllKeys(jObj) {
+                    var s = "";
+                    for (let prop in jObj) {
+                        if (typeof jObj[prop] === 'object') {
+                            if (Array.isArray(jObj[prop])) {
+                                s += `${prop}<br>`;
+                            } else {
+                                s += getAllKeys(jObj[prop]);
+                            };                           
+                        } else {
+                            s += `${prop}<br>`;
+                        }       
                     }
-                };
+                    return s;
+                }
+                allKeys = getAllKeys(myJson);
+                //for (let prop in myJson) {
+                //    if (typeof myJson[prop] === 'object') {
+                //        allKeys+=`${prop}<br>` 
+                //    }
+                //};
                 document.getElementById("showJson").innerHTML = allKeys;
                 //console.log(e.target.result);
               };
