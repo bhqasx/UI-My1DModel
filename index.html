@@ -3,18 +3,20 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     </head>
-    <script src="jquery-3.4.1.min.js"></script>
+    <!--<script src="jquery-3.4.1.min.js"></script>-->
     <body>
-        <input type="file" id="files" name="files[]" multiple />
+        <input type="file" id="files" name="files[]" multiple /><br>
+        <button id='save' onclick="SaveJson()">Save</button>
         <div id ="showJson"></div>
         <script>
+            var myJson = {};
             function handleFileSelect(evt) {
               var files = evt.target.files; // FileList object
               //console.log(files[0].name);
               var reader = new FileReader();
               reader.onload = function(e) {
                 // e.target.result should contain the text
-                var myJson = JSON.parse(e.target.result);
+                myJson = JSON.parse(e.target.result);
                 var allKeys = "";
 
                 function getAllKeys(jObj) {
@@ -22,16 +24,16 @@
                     for (let prop in jObj) {
                         if (typeof jObj[prop] === 'object') {
                             if (Array.isArray(jObj[prop])) {
-                                s += `${prop}<input type="text" value=${jObj[prop]}><br>`;
+                                s += `${prop}<input type="text" name="${prop}" oninput="WriteJson(this)" value=${jObj[prop]}><br>`;
                             } else {
-                                s += '<div>' + prop + '<br><div style="margin-left:5%">' 
+                                s += `<div id="${prop}">` + prop + '<br><div style="margin-left:5%">' 
                                     + getAllKeys(jObj[prop]) + '</div><hr></div>';
                             };                           
                         } else {
                             if (prop === 'comment') {
                                 s += jObj[prop] + '<br>';
                             } else {
-                                s += `${prop}<input type="text" value=${jObj[prop]}><br>`;
+                                s += `${prop}<input type="text" name="${prop}" oninput="WriteJson(this)" value=${jObj[prop]}><br>`;
                             };                           
                         }       
                     }
@@ -39,12 +41,45 @@
                 }
                 allKeys = getAllKeys(myJson);
                 document.getElementById("showJson").innerHTML = allKeys;
-                console.log(myJson.nReach.comment);
               };
               reader.readAsText(files[0]);
             }
           
             document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+            //处理submit按钮完成保存
+            function WriteJson(elem) {
+                var s = elem.name;
+                var temp_e = elem.parentElement;
+                while (temp_e.id !== "showJson") {
+                    if (temp_e.id !== "") {
+                        s = temp_e.id + '.' + s;
+                    }
+                    temp_e=temp_e.parentElement;
+                }
+                s = "myJson." + s;
+                console.log(s + `=${elem.value}`);
+                eval(s + `=${elem.value}`);
+            }
+
+            function SaveJson() {
+                var textFileAsBlob = new Blob([JSON.stringify(myJson)], { type: 'text/plain' });
+                var downloadLink = document.createElement('a');
+                downloadLink.download = 'download from browser.json';
+                downloadLink.innerHTML = 'Download File';
+                if ('webkitURL' in window) {
+                    // Chrome allows the link to be clicked without actually adding it to the DOM.
+                    downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+                } else {
+                    // Firefox requires the link to be added to the DOM before it can be clicked.
+                    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+                    downloadLink.onclick = destroyClickedElement;
+                    downloadLink.style.display = 'none';
+                    document.body.appendChild(downloadLink);
+                }
+
+                downloadLink.click();                
+            }
         </script>
     </body>
 </html>
